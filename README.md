@@ -2,15 +2,20 @@
 
 ## Scénario
  L'objectif est le déploiement d'un environnement serveur ISPconfig fonctionnel le plus silentieusement possible.
+ 
  A l'heure d'aujourd'hui, il s'agit d'un environnement STANDALONE.
  
 ## Usage
  Editer les variables placées en début de fichier : 
  
    serverIP=192.168.222.19
+   
    HOSTNAMESHORT=proxmox
+   
    HOSTNAMEFQDN=proxmox.inattendu-lab.org
+   
    mysql_pass=toor
+   
    phpma_pass=toor
 
  chmod +x isp.sh && ./isp.sh
