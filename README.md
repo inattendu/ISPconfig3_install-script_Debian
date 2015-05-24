@@ -1,10 +1,10 @@
-# ISPconfig3_install-script_Debian
+# Script d'installation d'ISPconfig3 sous Debian Jessie
 
---> Working
+## Working
   * Installation silentieuse des dépendances
-  * 
   
---> ToDo
+## ToDo
+  * Corriger certains retour de commandes qui échappent à l'écriture dans isp.log
   * Mise en argument des variables
   * Installation ISPconfig3 en mode silent
   * Tweak de l'install (Wizard || arg)
