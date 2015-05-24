@@ -1,24 +1,19 @@
-# Déploiement silentieux d'ISPconfig3 (Debian Jessie)
+# Déploiement silentieuse d'ISPconfig3 (Debian 8)
 
 ## Scénario
- L'objectif est le déploiement d'un environnement serveur ISPconfig fonctionnel le plus silentieusement possible.
- 
+ L'objectif est le déploiement d'un environnement serveur ISPconfig fonctionnel le plus silentieusement possible.<br/>
  A l'heure d'aujourd'hui, il s'agit d'un environnement STANDALONE.
  
 ## Usage
  Editer les variables placées en début de fichier : 
  
-   serverIP=192.168.222.19
-   
-   HOSTNAMESHORT=proxmox
-   
-   HOSTNAMEFQDN=proxmox.inattendu-lab.org
-   
-   mysql_pass=toor
-   
-   phpma_pass=toor
+   serverIP=192.168.222.19<br/>
+   HOSTNAMESHORT=proxmox<br/>
+   HOSTNAMEFQDN=proxmox.inattendu-lab.org<br/>
+   mysql_pass=toor<br/>
+   phpma_pass=toor<br/>
 
- chmod +x isp.sh && ./isp.sh
+ chmod +x isp.sh && ./isp.sh<br/>
    La quasi totalité des retours sont stockés dans le fichier isp.log
 
 ## Working
