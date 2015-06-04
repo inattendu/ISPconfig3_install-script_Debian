@@ -60,9 +60,8 @@ sed -i 's|# -o smtpd_tls_wrappermode=yes| -o smtpd_tls_wrappermode=yes|' /etc/po
 sed -i 's|# -o smtpd_sasl_auth_enable=yes| -o smtpd_sasl_auth_enable=yes|' /etc/postfix/master.cf
 sed -i 's|# -o smtpd_client_restrictions=permit_sasl_authenticated,reject| -o smtpd_client_restrictions=permit_sasl_authenticated,reject|' /etc/postfix/master.cf
 /etc/init.d/postfix restart >> isp.log 2>&1
-echo " *[amavisd spamassassin clamav & lib Perl]"
+echo " * [amavisd spamassassin clamav & lib Perl]"
 echo "    --> Installation"
-echo ""
 apt-get -y -qq install amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl libnet-dns-perl >> isp.log 2>&1
 echo "    --> Mise à jour de la base de signature ClamAV"
 killall freshclam >> isp.log 2>&1
@@ -123,10 +122,10 @@ echo "    --> Installation"
 apt-get -y -qq install pure-ftpd-common pure-ftpd-mysql quota quotatool >> isp.log 2>&1
 echo "    --> Postconfiguration"
 sed -i 's/VIRTUALCHROOT=false/VIRTUALCHROOT=true/' /etc/default/pure-ftpd-common
-echo 1 > /etc/pure-ftpd/conf/TLS
-mkdir -p /etc/ssl/private/
-openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -subj "/C=/ST=/L=/O=/CN=$(hostname -f)" -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem
-chmod 600 /etc/ssl/private/pure-ftpd.pem
+echo 1 > /etc/pure-ftpd/conf/TLS >> isp.log 2>&1
+mkdir -p /etc/ssl/private/ >> isp.log 2>&1
+openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -subj "/C=/ST=/L=/O=/CN=$(hostname -f)" -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem >> isp.log 2>&1
+chmod 600 /etc/ssl/private/pure-ftpd.pem >> isp.log 2>&1
 /etc/init.d/pure-ftpd-mysql restart >> isp.log 2>&1
 sed -i "s/errors=remount-ro/errors=remount-ro,usrjquota=quota.user,grpjquota=quota.group,jqfmt=vfsv0/" /etc/fstab
 mount -o remount / >> isp.log 2>&1
@@ -160,7 +159,7 @@ cd ..
 dpkg -i jailkit_2.17-1_*.deb >> isp.log 2>&1
 rm -rf jailkit-2.17*
 echo "    --> Installation de fail2ban"
-apt-get install -y -qq fail2ban
+apt-get install -y -qq fail2ban >> isp.log 2>&1
 echo "    --> Postconfiguration"
 cat > /etc/fail2ban/jail.local <<"EOF"
 [pureftpd]
@@ -200,9 +199,9 @@ echo "| 		L'installation d'ISPconfig va commencer      |"
 echo "|______________________________________________________|"
 echo ""
 cd /tmp
-wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz
-tar xfz ISPConfig-3-stable.tar.gz
-cd ispconfig3_install/install/
+wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz >> isp.log 2>&1
+tar xfz ISPConfig-3-stable.tar.gz >> isp.log 2>&1
+cd ispconfig3_install/install/ >> isp.log 2>&1
 php -q install.php
 echo ""
 echo " _____________________________"
