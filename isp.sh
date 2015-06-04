@@ -29,7 +29,7 @@ deb http://security.debian.org/ jessie/updates main contrib non-free
 deb http://ftp.fr.debian.org/debian/ jessie-updates main contrib non-free
 EOF
 echo "    --> Mise à jour"
-apt-get clean >> isp.log && apt-get update >> isp.log && apt-get -y dist-upgrade >> isp.log && apt-get autoremove --purge >> isp.log
+apt-get -q clean >> isp.log && apt-get -q update >> isp.log && apt-get -y -q dist-upgrade >> isp.log && apt-get -q autoremove --purge >> isp.log
 echo "    --> Installation d'outils initiaux (archivage, DNS, NTP, rkhunter, sudo)"
 apt-get -y install dnsutils unzip rkhunter binutils sudo bzip2 zip ntp ntpdate >> isp.log
 echo "    --> Reconfiguration du terminal vers DASH"
@@ -45,7 +45,7 @@ echo "postfix postfix/mailname string $HOSTNAMEFQDN" | debconf-set-selections
 echo "courier-base courier-base/webadmin-configmode boolean false" | debconf-set-selections
 echo "courier-ssl courier-ssl/certnotice note" | debconf-set-selections
 echo "    --> Installation"
-apt-get -y install postfix postfix-mysql postfix-doc mysql-client mysql-server openssl getmail4 dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve opendkim opendkim-tools>> isp.log
+apt-get -y -q install postfix postfix-mysql postfix-doc mysql-client mysql-server openssl getmail4 dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve opendkim opendkim-tools>> isp.log
 echo "    --> Postconfiguration (MySQL & Postfix)"
 sed -i 's/bind-address = 127.0.0.1/#bind-address = 127.0.0.1/' /etc/mysql/my.cnf
 /etc/init.d/mysql restart >> isp.log
@@ -63,7 +63,7 @@ sed -i 's|# -o smtpd_client_restrictions=permit_sasl_authenticated,reject| -o sm
 echo " *[amavisd spamassassin clamav & lib Perl]"
 echo "    --> Installation"
 echo ""
-apt-get -y install amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl libnet-dns-perl >> isp.log
+apt-get -y -q install amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl libnet-dns-perl >> isp.log
 echo "    --> Mise à jour de la base de signature ClamAV"
 killall freshclam >> isp.log
 freshclam >> isp.log
@@ -83,7 +83,7 @@ echo 'phpmyadmin phpmyadmin/app-password-confirm password '$phpma_pass | debconf
 echo "    --> Installation"
 # libapache2-mod-suphp & libapache2-mod-ruby  retiré des dépots debian pour des raisons de sécurité
 # si besoin de ruby : libapache2-passange
-apt-get install -y apache2 apache2.2-common apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert libapache2-mod-php5 php5 php5-common php5-gd php5-mysql php5-imap phpmyadmin php5-cli php5-cgi libapache2-mod-fcgid apache2-suexec php-pear php-auth php5-mcrypt mcrypt php5-imagick imagemagick libruby libapache2-mod-python php5-curl php5-intl php5-memcache php5-memcached php5-pspell php5-recode php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached libapache2-mod-passenger >> isp.log
+apt-get install -y -q apache2 apache2.2-common apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert libapache2-mod-php5 php5 php5-common php5-gd php5-mysql php5-imap phpmyadmin php5-cli php5-cgi libapache2-mod-fcgid apache2-suexec php-pear php-auth php5-mcrypt mcrypt php5-imagick imagemagick libruby libapache2-mod-python php5-curl php5-intl php5-memcache php5-memcached php5-pspell php5-recode php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached libapache2-mod-passenger >> isp.log
 # Journalisation désactivée car saisie utilisateur requise pour PMA
 echo "    --> Postconfiguration"
 a2enmod suexec rewrite ssl actions include >> isp.log
@@ -91,8 +91,8 @@ a2enmod suexec rewrite ssl actions include >> isp.log
 #a2enmod dav_fs dav auth_digest >> isp.log
 sed -i 's|application/x-ruby|#application/x-ruby|' /etc/mime.types
 echo "    --> Installation (Lib cache)"
-apt-get install -y php5-xcache >> isp.log
-apt-get -y install libapache2-mod-fastcgi php5-fpm >> isp.log
+apt-get install -y -q php5-xcache >> isp.log
+apt-get -y -q install libapache2-mod-fastcgi php5-fpm >> isp.log
 a2enmod actions fastcgi alias >> isp.log
 echo ServerName $HOSTNAMEFQDN >> /etc/apache2/apache2.conf
 /etc/init.d/apache2 restart >> isp.log
@@ -120,7 +120,7 @@ echo ServerName $HOSTNAMEFQDN >> /etc/apache2/apache2.conf
 #/etc/init.d/mailman start
 echo " * [FTP & quotas]"
 echo "    --> Installation"
-apt-get -y install pure-ftpd-common pure-ftpd-mysql quota quotatool >> isp.log
+apt-get -y -q install pure-ftpd-common pure-ftpd-mysql quota quotatool >> isp.log
 echo "    --> Postconfiguration"
 sed -i 's/VIRTUALCHROOT=false/VIRTUALCHROOT=true/' /etc/default/pure-ftpd-common
 echo 1 > /etc/pure-ftpd/conf/TLS
@@ -134,8 +134,8 @@ quotacheck -avugm >> isp.log
 quotaon -avug >> isp.log
 echo " * [DNS & Analytics]"
 echo "    --> Installation"
-apt-get install -y bind9 dnsutils >> isp.log
-apt-get install -y vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl >> isp.log
+apt-get install -y -q bind9 dnsutils >> isp.log
+apt-get install -y -q vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl >> isp.log
 echo "    --> Postconfiguration"
 rm /etc/cron.d/awstats
 cat > /etc/cron.d/awstats <<"EOF"
@@ -149,7 +149,7 @@ echo " OK"
 echo ""
 echo " [Jail tools & fail2ban]"
 echo "    --> Installation des dépendances"
-apt-get install -y build-essential autoconf automake1.9 libtool flex bison debhelper binutils-gold >> isp.log
+apt-get install -y -q build-essential autoconf automake1.9 libtool flex bison debhelper binutils-gold >> isp.log
 echo "    --> Installation de Jailkit depuis les sources (v2.17)"
 cd /tmp
 wget http://olivier.sessink.nl/jailkit/jailkit-2.17.tar.gz >> isp.log
