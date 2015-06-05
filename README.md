@@ -1,30 +1,26 @@
 # Déploiement silencieuse d'ISPconfig3 (Debian 8)
 
 ## Scénario
- L'objectif est le déploiement d'un environnement serveur ISPconfig fonctionnel le plus silentieusement possible.<br/>
- A l'heure d'aujourd'hui, il s'agit d'un environnement STANDALONE.
+ Déploiement d'un environnement serveur ISPconfig STANDALONE<br/>
  
 ## Usage
- Editer les variables placées en début de fichier : 
- 
-   serverIP=192.168.222.19<br/>
-   HOSTNAMESHORT=proxmox<br/>
-   HOSTNAMEFQDN=proxmox.inattendu-lab.org<br/>
-   mysql_pass=toor<br/>
-   phpma_pass=toor<br/>
-
- chmod +x isp.sh && ./isp.sh<br/>
-   La quasi totalité des retours sont stockés dans le fichier isp.log
+ * Editer le fichier isp.conf
+ * Rendre le script executable & le lancer.
+  chmod +x isp.sh && ./isp.sh<br/>
+   Les retours sont stockés dans le fichier isp.log
 
 ## Working
-  * Installation silentieuse des dépendances
+  * Installation silentieuse
+  * Journalisation & Timestamp >> isp.log
+
+## Known Bug
+  * Installation de JailKit depuis les sources ne se passe pas comme prévu.
   
 ## ToDo
-  * Corriger certains retour de commandes qui échappent à l'écriture dans isp.log
-  * Ajout timestamp au fichier journal
-  * Mise en argument des variables
+  * Tweak de l'install (ARG)
+    ** Wizard (dialog)
+    ** Silent
   * Installation ISPconfig3 en mode silent
-  * Tweak de l'install (Wizard || arg)
   * installation d'un webmail (Roundcube / Horde)
   * Apache : 
   	** Redirect Auto $:8080 vers HTTPS
