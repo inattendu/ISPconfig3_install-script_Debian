@@ -17,7 +17,6 @@
 
 ## Known Bug
   * Installation de Roundcube n'est pas encore fonctionelle (squirelmail défini par défaut).
-  * Une partie des logs est écrite dans /tmp/ à partir de la ligne 72 du fichier isp_install.sh
   
 ## ToDo
   * Tweak de l'install (ARG)<br/>
