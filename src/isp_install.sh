@@ -83,7 +83,7 @@ install_antivirus() {
 	apt-get -qy install amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl libnet-dns-perl 2>&1 | logmanager 
 	echo "            --> Mise à jour de la base de signature ClamAV"
 	killall freshclam 2>&1 | logmanager
-	#freshclam 2>&1 | logmanager 
+	freshclam 2>&1 | logmanager 
 	echo "            --> Postconfiguration (autostart outils AV)"
 	/etc/init.d/clamav-daemon start 2>&1 | logmanager
 	/etc/init.d/spamassassin stop 2>&1 | logmanager
