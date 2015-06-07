@@ -127,7 +127,7 @@ install_apache_php() {
 install_ftp() {
 	echo "    * [FTP & quotas]"
 	echo "            --> Installation"
-	apt-get -qy install pure-ftpd-common pure-ftpd-mysq 2>&1 | adddate >> isp.log 2>&1
+	apt-get -qy install pure-ftpd-common pure-ftpd-mysql 2>&1 | adddate >> isp.log 2>&1
 	echo "            --> Postconfiguration"
 	sed -i 's/VIRTUALCHROOT=false/VIRTUALCHROOT=true/' /etc/default/pure-ftpd-common
 	echo 1 > /etc/pure-ftpd/conf/TLS
