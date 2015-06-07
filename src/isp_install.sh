@@ -169,14 +169,14 @@ install_jailkit() {
 	echo "    * [Jail tools & fail2ban]"
 	echo "            --> Installation des dépendances"
 	apt-get install -qy build-essential autoconf automake1.11 libtool flex bison debhelper binutils-gold 2>&1 | adddate >> isp.log 2>&1
-	echo "            --> Installation de Jailkit depuis les sources (v2.17) ! non fonctionnel !"
+	echo "            --> Installation de Jailkit depuis les sources (v2.17)"
 	cd /tmp
 	wget http://olivier.sessink.nl/jailkit/jailkit-2.17.tar.gz 2>&1 | adddate >> isp.log 2>&1
 	tar xfz jailkit-2.17.tar.gz 2>&1 | adddate >> isp.log 2>&1
 	cd jailkit-2.17
 	./debian/rules binary 2>&1 | adddate >> isp.log 2>&1
 	cd ..
-	dpkg -i jailkit_2.17-1_*.deb 2>&1 | adddate >> isp.log 2>&1
+	dpkg -i jailkit_2.17-1_amd64.deb 2>&1 | adddate >> isp.log 2>&1
 	rm -rf jailkit-2.17*
 }
 
