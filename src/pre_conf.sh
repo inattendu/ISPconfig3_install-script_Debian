@@ -3,13 +3,14 @@
 conf_name() {
 	echo " >> [PREPARATION DU SYSTEME]"
 	echo "        --> Fichier HOSTS"
-	rm /etc/hosts &&
-	echo -e '127.0.0.1\t\t'$HOSTNAMEFQDN'\t'$HOSTNAMESHORT'\t localhost' >> /etc/hosts &&
-	echo -e $serverIP'\t\t'$HOSTNAMEFQDN'\t'$HOSTNAMESHORT >> /etc/hosts &&
+	rm /etc/hosts
+	rm /etc/hostname
+	echo -e '127.0.0.1\t\t'$HOSTNAMEFQDN'\t'$HOSTNAMESHORT'\t localhost' >> /etc/hosts
+	echo -e $serverIP'\t\t'$HOSTNAMEFQDN'\t'$HOSTNAMESHORT >> /etc/hosts
 	echo "        --> Fichier HOSTNAME"
-	echo $HOSTNAMEFQDN > /etc/hostname &&
+	echo $HOSTNAMEFQDN > /etc/hostname
 	echo "        --> Validation des modifications"
-	/etc/init.d/hostname.sh &&
+	/etc/init.d/hostname.sh
 }
 
 
@@ -34,8 +35,8 @@ connect_test() {
 
 conf_maj(){
 	echo "        --> Mise à jour système"
-	apt-get -q clean 2>&1 | adddate >> isp.log 2>&1 &&
-	apt-get -q update 2>&1 | adddate >> isp.log 2>&1 &&
-	apt-get -q -y dist-upgrade 2>&1 | adddate >> isp.log 2>&1 &&
-	apt-get -q -y autoremove --purge 2>&1 | adddate >> isp.log 2>&1 &&
+	apt-get -q clean 2>&1 | adddate >> isp.log 2>&1
+	apt-get -q update 2>&1 | adddate >> isp.log 2>&1
+	apt-get -q -y dist-upgrade 2>&1 | adddate >> isp.log 2>&1
+	apt-get -q -y autoremove --purge 2>&1 | adddate >> isp.log 2>&1
 }
