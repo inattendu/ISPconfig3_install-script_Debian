@@ -8,6 +8,6 @@
 
 logmanager() {
     while IFS= read -r line; do
-        echo "$(date +'%d/%m/%y %k:%M:%S |') $line"
+        echo "$(date +'%d/%m/%y %k:%M:%S |') $line" >> $logfile 2>&1
     done
 }
