@@ -17,7 +17,7 @@
   * Choix de l'installation optionelle parmis deux MTA (courier / dovecot) et deux webmails (SquirelMail / RoundCube)
 
 ## Known Bug
-  * Installation de Roundcube n'est pas encore fonctionelle.
+  * Installation de Roundcube n'est pas encore fonctionelle (squirelmail défini par défaut).
   
 ## ToDo
   * Tweak de l'install (ARG)<br/>
@@ -30,4 +30,4 @@
   * Gestion d'erreur.
   * Retour test connection fichier journal
   * Segmentation visuelle fichier journal
-  * Full silent install squirrelmail
+  * Tweak Alias URL "webmail"
