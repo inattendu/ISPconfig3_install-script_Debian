@@ -160,7 +160,6 @@ install_dns() {
 install_analytics() {
 	apt-get install -qy vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl 2>&1 | adddate >> isp.log 2>&1
 	echo "            --> Postconfiguration"
-	rm /etc/cron.d/awstats
 	sed -i 's/^/#/' /etc/cron.d/awstats
 }
 
@@ -325,8 +324,11 @@ Install_Webmail() {
 	  ;;
 	"squirrelmail")
 	  echo "dictionaries-common dictionaries-common/default-wordlist select american (American English)" | debconf-set-selections
+	  echo ""
+	  echo "Veiller à ajouter les dossiers /usr/share/squirrelmail & /etc/squirrelmail aux PHP open_basedir dans les Options de chaques sites sur l'interface d'ISPconfig"
+	  echo ""
 	  apt-get -qy install squirrelmail wamerican 2>&1 | adddate >> isp.log 2>&1
-	  ln -s /etc/squirrelmail/apache.conf /etc/apache2/conf.d/squirrelmail
+	  ln -s /etc/squirrelmail/apache.conf /etc/apache2/site-enabled/squirrelmail
 	  sed -i 1d /etc/squirrelmail/apache.conf
 	  sed -i '1iAlias /webmail /usr/share/squirrelmail' /etc/squirrelmail/apache.conf
 
