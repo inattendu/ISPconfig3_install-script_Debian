@@ -4,30 +4,30 @@ install_initial_tools() {
 	echo "---------------------------"
 	echo " >> [INSTALLATION DES DEPENDANCES]"
 	echo "        --> Installation des outils d'administration initiaux."
-	apt-get -qy install ssh debconf-utils dnsutils unzip rkhunter binutils sudo bzip2 openssl zip ntp ntpdate 2>&1 | adddate >> isp.log 2>&1
+	apt-get -qy install ssh debconf-utils dnsutils unzip rkhunter binutils sudo bzip2 openssl zip ntp ntpdate 2>&1 | logmanager
 }
 
 
 go_dash() {
 	echo "        --> Reconfiguration du terminal vers DASH"
 	echo "dash dash/sh boolean false" | debconf-set-selections
-	dpkg-reconfigure -f noninteractive dash 2>&1 | adddate >> isp.log 2>&1
+	dpkg-reconfigure -f noninteractive dash 2>&1 | logmanager
 }
 
 
 install_mysql() {
 	echo "mysql-server-5.5 mysql-server/root_password password $mysql_pass" | debconf-set-selections
 	echo "mysql-server-5.5 mysql-server/root_password_again password $mysql_pass" | debconf-set-selections
-	apt-get -qy install mysql-client mysql-server 2>&1 | adddate >> isp.log 2>&1
+	apt-get -qy install mysql-client mysql-server 2>&1 | logmanager
 	sed -i 's/bind-address = 127.0.0.1/#bind-address = 127.0.0.1/' /etc/mysql/my.cnf
-	/etc/init.d/mysql restart 2>&1 | adddate >> isp.log 2>&1
+	/etc/init.d/mysql restart 2>&1 | logmanager
 }
 
 
 install_postfix() {
 	echo "postfix postfix/main_mailer_type select Internet Site" | debconf-set-selections
 	echo "postfix postfix/mailname string $HOSTNAMEFQDN" | debconf-set-selections
-	apt-get -qy install postfix postfix-mysql postfix-doc 2>&1 | adddate >> isp.log 2>&1
+	apt-get -qy install postfix postfix-mysql postfix-doc 2>&1 | logmanager
 	sed -i 's|#submission inet n - - - - smtpd|submission inet n - - - - smtpd|' /etc/postfix/master.cf
 	sed -i 's|# -o syslog_name=postfix/submission| -o syslog_name=postfix/submission|' /etc/postfix/master.cf
 	sed -i 's|# -o smtpd_tls_security_level=encrypt| -o smtpd_tls_security_level=encrypt|' /etc/postfix/master.cf
@@ -38,7 +38,7 @@ install_postfix() {
 	sed -i 's|# -o smtpd_tls_wrappermode=yes| -o smtpd_tls_wrappermode=yes|' /etc/postfix/master.cf
 	sed -i 's|# -o smtpd_sasl_auth_enable=yes| -o smtpd_sasl_auth_enable=yes|' /etc/postfix/master.cf
 	sed -i 's|# -o smtpd_client_restrictions=permit_sasl_authenticated,reject| -o smtpd_client_restrictions=permit_sasl_authenticated,reject|' /etc/postfix/master.cf
-	/etc/init.d/postfix restart 2>&1 | adddate >> isp.log 2>&1
+	/etc/init.d/postfix restart 2>&1 | logmanager
 }
 
 
@@ -71,7 +71,7 @@ install_MTA() {
 			echo "courier-base courier-base/webadmin-configmode boolean false" | debconf-set-selections
 			echo "courier-ssl courier-ssl/certnotice note" | debconf-set-selections
 			echo "            --> Installation"
-			apt-get -qy install getmail4 dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve 2>&1 | adddate >> isp.log 2>&1
+			apt-get -qy install getmail4 dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve 2>&1 | logmanager
 			;;
 	esac
 }
@@ -80,14 +80,14 @@ install_MTA() {
 install_antivirus() {
 	echo "    * [amavisd spamassassin clamav & lib Perl]"
 	echo "            --> Installation"
-	apt-get -qy install amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl libnet-dns-perl 2>&1 | adddate >> isp.log 2>&1 
+	apt-get -qy install amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl libnet-dns-perl 2>&1 | logmanager 
 	echo "            --> Mise à jour de la base de signature ClamAV"
-	killall freshclam 2>&1 | adddate >> isp.log 2>&1
-	#freshclam 2>&1 | adddate >> isp.log 2>&1 
+	killall freshclam 2>&1 | logmanager
+	#freshclam 2>&1 | logmanager 
 	echo "            --> Postconfiguration (autostart outils AV)"
-	/etc/init.d/clamav-daemon start 2>&1 | adddate >> isp.log 2>&1
-	/etc/init.d/spamassassin stop 2>&1 | adddate >> isp.log 2>&1
-	update-rc.d -f spamassassin remove 2>&1 | adddate >> isp.log 2>&1
+	/etc/init.d/clamav-daemon start 2>&1 | logmanager
+	/etc/init.d/spamassassin stop 2>&1 | logmanager
+	update-rc.d -f spamassassin remove 2>&1 | logmanager
 }
 
 
@@ -105,47 +105,47 @@ install_apache_php() {
 	echo "            --> Installation"
 	# libapache2-mod-suphp & libapache2-mod-ruby  retiré des dépots debian pour des raisons de sécurité
 	# si besoin de ruby : libapache2-passange
-	apt-get install -qy apache2 apache2.2-common apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert libapache2-mod-php5 php5 php5-common php5-gd php5-mysql php5-imap phpmyadmin php5-cli php5-cgi libapache2-mod-fcgid apache2-suexec php-pear php-auth php5-mcrypt mcrypt php5-imagick imagemagick libruby libapache2-mod-python php5-curl php5-intl php5-memcache php5-memcached php5-pspell php5-recode php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached libapache2-mod-passenger 2>&1 | adddate >> isp.log 2>&1 
+	apt-get install -qy apache2 apache2.2-common apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert libapache2-mod-php5 php5 php5-common php5-gd php5-mysql php5-imap phpmyadmin php5-cli php5-cgi libapache2-mod-fcgid apache2-suexec php-pear php-auth php5-mcrypt mcrypt php5-imagick imagemagick libruby libapache2-mod-python php5-curl php5-intl php5-memcache php5-memcached php5-pspell php5-recode php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached libapache2-mod-passenger 2>&1 | logmanager 
 	if [ $ruby == "true" ]; then
-			apt-get install -qy libapache2-passange 2>&1 | adddate >> isp.log 2>&1
+			apt-get install -qy libapache2-passange 2>&1 | logmanager
 	fi
 	if [ $webDAV == "true" ]; then
-		a2enmod dav_fs dav auth_digest 2>&1 | adddate >> isp.log 2>&1
+		a2enmod dav_fs dav auth_digest 2>&1 | logmanager
 	fi
 	echo "            --> Postconfiguration"
-	a2enmod suexec rewrite ssl actions include 2>&1 | adddate >> isp.log 2>&1
+	a2enmod suexec rewrite ssl actions include 2>&1 | logmanager
 	sed -i 's|application/x-ruby|#application/x-ruby|' /etc/mime.types
 	echo "            --> Installation (Lib cache)"
-	apt-get install -qy php5-xcache 2>&1 | adddate >> isp.log 2>&1
-	apt-get -qy install libapache2-mod-fastcgi php5-fpm 2>&1 | adddate >> isp.log 2>&1
-	a2enmod actions fastcgi alias 2>&1 | adddate >> isp.log 2>&1
+	apt-get install -qy php5-xcache 2>&1 | logmanager
+	apt-get -qy install libapache2-mod-fastcgi php5-fpm 2>&1 | logmanager
+	a2enmod actions fastcgi alias 2>&1 | logmanager
 	echo ServerName $HOSTNAMEFQDN >> /etc/apache2/apache2.conf
-	/etc/init.d/apache2 restart 2>&1 | adddate >> isp.log 2>&1
+	/etc/init.d/apache2 restart 2>&1 | logmanager
 }
 
 
 install_ftp() {
 	echo "    * [FTP & quotas]"
 	echo "            --> Installation"
-	apt-get -qy install pure-ftpd-common pure-ftpd-mysql 2>&1 | adddate >> isp.log 2>&1
+	apt-get -qy install pure-ftpd-common pure-ftpd-mysql 2>&1 | logmanager
 	echo "            --> Postconfiguration"
 	sed -i 's/VIRTUALCHROOT=false/VIRTUALCHROOT=true/' /etc/default/pure-ftpd-common
 	echo 1 > /etc/pure-ftpd/conf/TLS
 	mkdir -p /etc/ssl/private/
 	openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -subj "/C=/ST=/L=/O=/CN=$(hostname -f)" -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem >> isp.log 2>&1
-	chmod 600 /etc/ssl/private/pure-ftpd.pem 2>&1 | adddate >> isp.log 2>&1
-	/etc/init.d/pure-ftpd-mysql restart 2>&1 | adddate >> isp.log 2>&1
+	chmod 600 /etc/ssl/private/pure-ftpd.pem 2>&1 | logmanager
+	/etc/init.d/pure-ftpd-mysql restart 2>&1 | logmanager
 
 }
 
 
 install_quotas() {
-	apt-get -qy install quota quotatool 2>&1 | adddate >> isp.log 2>&1
+	apt-get -qy install quota quotatool 2>&1 | logmanager
 	if [ `cat /etc/fstab | grep ',usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv0' | wc -l` -eq 0 ]; then
 		sed -i 's/errors=remount-ro/errors=remount-ro,usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv0/' /etc/fstab
-		mount -o remount / 2>&1 | adddate >> isp.log 2>&1
-		quotacheck -avugm 2>&1 | adddate >> isp.log 2>&1
-		quotaon -avug 2>&1 | adddate >> isp.log 2>&1
+		mount -o remount / 2>&1 | logmanager
+		quotacheck -avugm 2>&1 | logmanager
+		quotaon -avug 2>&1 | logmanager
   	fi
 }
 
@@ -153,12 +153,12 @@ install_quotas() {
 install_dns() {
 	echo "    * [DNS & Analytics]"
 	echo "            --> Installation"
-	apt-get install -qy bind9 dnsutils 2>&1 | adddate >> isp.log 2>&1
+	apt-get install -qy bind9 dnsutils 2>&1 | logmanager
 }
 
 
 install_analytics() {
-	apt-get install -qy vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl 2>&1 | adddate >> isp.log 2>&1
+	apt-get install -qy vlogger webalizer awstats geoip-database libclass-dbi-mysql-perl 2>&1 | logmanager
 	echo "            --> Postconfiguration"
 	sed -i 's/^/#/' /etc/cron.d/awstats
 }
@@ -167,21 +167,21 @@ install_analytics() {
 install_jailkit() {
 	echo "    * [Jail tools & fail2ban]"
 	echo "            --> Installation des dépendances"
-	apt-get install -qy build-essential autoconf automake1.11 libtool flex bison debhelper binutils-gold 2>&1 | adddate >> isp.log 2>&1
+	apt-get install -qy build-essential autoconf automake1.11 libtool flex bison debhelper binutils-gold 2>&1 | logmanager
 	echo "            --> Installation de Jailkit depuis les sources (v2.17)"
 	cd /tmp
-	wget http://olivier.sessink.nl/jailkit/jailkit-2.17.tar.gz 2>&1 | adddate >> isp.log 2>&1
-	tar xfz jailkit-2.17.tar.gz 2>&1 | adddate >> isp.log 2>&1
+	wget http://olivier.sessink.nl/jailkit/jailkit-2.17.tar.gz 2>&1 | logmanager
+	tar xfz jailkit-2.17.tar.gz 2>&1 | logmanager
 	cd jailkit-2.17
-	./debian/rules binary 2>&1 | adddate >> isp.log 2>&1
+	./debian/rules binary 2>&1 | logmanager
 	cd ..
-	dpkg -i jailkit_2.17-1_amd64.deb 2>&1 | adddate >> isp.log 2>&1
+	dpkg -i jailkit_2.17-1_amd64.deb 2>&1 | logmanager
 	rm -rf jailkit-2.17*
 }
 
 install_fail2ban() {
 	echo "            --> Installation de fail2ban"
-	apt-get install -qy fail2ban 2>&1 | adddate >> isp.log 2>&1
+	apt-get install -qy fail2ban 2>&1 | logmanager
 	echo -e "            --> Postconfiguration\n"
 
 	case $MTA in
@@ -279,7 +279,7 @@ EOF
 failregex = .*pure-ftpd: \(.*@<HOST>\) \[WARNING\] Authentication failed for user.*
 ignoreregex =
 EOF
-	/etc/init.d/fail2ban restart 2>&1 | adddate >> isp.log 2>&1
+	/etc/init.d/fail2ban restart 2>&1 | logmanager
 }
 
 
@@ -321,7 +321,7 @@ Install_Webmail() {
 	  	echo "roundcube-core roundcube/mysql/app-pass password $roundcube_pass" | debconf-set-selections
 	  	echo "roundcube-core roundcube/app-password-confirm password $roundcube_pass" | debconf-set-selections
 	  	echo "            --> Installation"
-	  	apt-get -qy install roundcube roundcube-mysql 2>&1 | adddate >> isp.log 2>&1
+	  	apt-get -qy install roundcube roundcube-mysql 2>&1 | logmanager
 	  	echo "            --> Post-Configuration"
 	  	sed -i '1iAlias /webmail /var/lib/roundcube' /etc/roundcube/apache.conf
 	  	sed -i "s/\$rcmail_config\['default_host'\] = '';/\$rcmail_config\['default_host'\] = 'localhost';/" /etc/roundcube/main.inc.php
@@ -331,20 +331,20 @@ Install_Webmail() {
 		echo "            --> Pré-configuration"
 	  	echo "dictionaries-common dictionaries-common/default-wordlist select american (American English)" | debconf-set-selections
 	  	echo "            --> Installation"
-	  	apt-get -qy install squirrelmail wamerican 2>&1 | adddate >> isp.log 2>&1
+	  	apt-get -qy install squirrelmail wamerican 2>&1 | logmanager
 	  	echo "            --> Post-Configuration"
-	  	ln -s /etc/squirrelmail/apache.conf /etc/apache2/site-enabled/squirrelmail
-	  	ln -s /etc/squirrelmail/apache.conf /etc/apache2/conf-enabled/squirrelmail
+	  	ln -s /etc/squirrelmail/apache.conf /etc/apache2/sites-enabled/squirrelmail
 	  	sed -i 1d /etc/squirrelmail/apache.conf
 	  	sed -i '1iAlias /webmail /usr/share/squirrelmail' /etc/squirrelmail/apache.conf
 	  	cat >> /etc/squirrelmail/apache.conf <<"EOF"
-	  	<Location /webmail>
-		<IfModule suphp_module>
-	  	suPHP_Engine Off
-		AddHandler php5-script  .php
-		</IfModule>
-		php_admin_value open_basedir "/usr/share/squirrelmail/:/etc/squirrelmail:/usr/share/squirrelmail/config/:/etc/mailname/:/var/lib/squirrelmail/data:/var/spool/squirrelmail/attach"
-		</Location>
+<Location /webmail>
+        <IfModule suphp_module>
+                suPHP_Engine Off
+                AddHandler php5-script  .php
+        </IfModule>
+        php_admin_value open_basedir "/usr/share/squirrelmail/:/etc/squirrelmail:/usr/share/squirrelmail/config/:/etc/mailname/:/var/lib/squirrelmail/data:/var/spool/squirrelmail/attach"
+</Location>
+
 EOF
 
 	case $MTA in
@@ -369,7 +369,7 @@ EOF
 	esac
 	  ;;
   esac
-  service apache2 restart 2>&1 | adddate >> isp.log 2>&1
+  service apache2 restart 2>&1 | logmanager
 }
 
 isp_install() {
@@ -378,8 +378,8 @@ isp_install() {
 	echo "|         L'installation d'ISPconfig va commencer      |"
 	echo -e "|______________________________________________________|\n"
 	cd /tmp
-	wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz 2>&1 | adddate >> isp.log 2>&1
-	tar xfz ISPConfig-3-stable.tar.gz 2>&1 | adddate >> isp.log 2>&1
+	wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz 2>&1 | logmanager
+	tar xfz ISPConfig-3-stable.tar.gz 2>&1 | logmanager
 	cd ispconfig3_install/install/
 	php -q install.php
 }

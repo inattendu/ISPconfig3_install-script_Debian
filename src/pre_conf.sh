@@ -35,8 +35,8 @@ connect_test() {
 
 conf_maj(){
 	echo "        --> Mise à jour système"
-	apt-get -q clean 2>&1 | adddate >> isp.log 2>&1
-	apt-get -q update 2>&1 | adddate >> isp.log 2>&1
-	apt-get -q -y dist-upgrade 2>&1 | adddate >> isp.log 2>&1
-	apt-get -q -y autoremove --purge 2>&1 | adddate >> isp.log 2>&1
+	apt-get -q clean 2>&1 | logmanager
+	apt-get -q update 2>&1 | logmanager
+	apt-get -q -y dist-upgrade 2>&1 | logmanager
+	apt-get -q -y autoremove --purge 2>&1 | logmanager
 }
