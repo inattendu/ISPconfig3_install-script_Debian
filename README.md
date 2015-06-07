@@ -28,4 +28,5 @@
   * Apache :<br/>
   	** Redirect Auto $:8080 vers HTTPS
   * Gestion d'erreur.
-
+  * Retour test connection fichier journal
+  * Segmentation visuelle fichier journal
