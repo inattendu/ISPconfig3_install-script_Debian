@@ -182,8 +182,7 @@ install_jailkit() {
 install_fail2ban() {
 	echo "            --> Installation de fail2ban"
 	apt-get install -qy fail2ban 2>&1 | logmanager
-	echo -e "            --> Postconfiguration\n"
-
+	echo -e "            --> Postconfiguration"
 	case $MTA in
 		"courier")
 			cat > /etc/fail2ban/jail.local <<EOF
@@ -373,10 +372,6 @@ EOF
 }
 
 isp_install() {
-	echo " ______________________________________________________"
-	echo "|                                                      |"
-	echo "|         L'installation d'ISPconfig va commencer      |"
-	echo -e "|______________________________________________________|\n"
 	cd /tmp
 	wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz 2>&1 | logmanager
 	tar xfz ISPConfig-3-stable.tar.gz 2>&1 | logmanager
