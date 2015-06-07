@@ -12,15 +12,20 @@
 ## Working
   * Installation silentieuse
   * Journalisation & Timestamp >> isp.log
+  * Détection pré-requis réseau (DNS & GW)
+  * Choix de l'installation ou non de composants optionels dans le fichier de conf
+  * Choix de l'installation optionelle parmis deux MTA (courier / dovecot) et deux webmails (SquirelMail / RoundCube)
 
 ## Known Bug
   * Installation de JailKit depuis les sources ne se passe pas comme prévu.
   
 ## ToDo
-  * Tweak de l'install (ARG)
-    ** Wizard (dialog)
+  * Tweak de l'install (ARG)<br/>
+    ** Wizard (dialog)<br/>
     ** Silent
   * Installation ISPconfig3 en mode silent
-  * installation d'un webmail (Roundcube / Horde)
-  * Apache : 
+  * Ajout de Horde aux webmails possibles
+  * Apache :<br/>
   	** Redirect Auto $:8080 vers HTTPS
+  * Gestion d'erreur.
+
