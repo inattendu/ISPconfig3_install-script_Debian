@@ -312,46 +312,61 @@ EOF
 Install_Webmail() {
   case $webmail in
 	"roundcube")
-	  echo "roundcube-core roundcube/dbconfig-install boolean true" | debconf-set-selections
-	  echo "roundcube-core roundcube/database-type select mysql" | debconf-set-selections
-	  echo "roundcube-core roundcube/mysql/admin-pass password $mysql_pass" | debconf-set-selections
-	  echo "roundcube-core roundcube/db/dbname string roundcube" | debconf-set-selections
-	  echo "roundcube-core roundcube/mysql/app-pass password $roundcube_pass" | debconf-set-selections
-	  echo "roundcube-core roundcube/app-password-confirm password $roundcube_pass" | debconf-set-selections
-	  apt-get -qy install roundcube roundcube-mysql 2>&1 | adddate >> isp.log 2>&1
-	  sed -i '1iAlias /webmail /var/lib/roundcube' /etc/roundcube/apache.conf
-	  sed -i "s/\$rcmail_config\['default_host'\] = '';/\$rcmail_config\['default_host'\] = 'localhost';/" /etc/roundcube/main.inc.php
-	  ;;
+		echo "    * [Webmail : Roundcube]"
+		echo "            --> Pré-configuration"
+	  	echo "roundcube-core roundcube/dbconfig-install boolean true" | debconf-set-selections
+	  	echo "roundcube-core roundcube/database-type select mysql" | debconf-set-selections
+	  	echo "roundcube-core roundcube/mysql/admin-pass password $mysql_pass" | debconf-set-selections
+	  	echo "roundcube-core roundcube/db/dbname string roundcube" | debconf-set-selections
+	  	echo "roundcube-core roundcube/mysql/app-pass password $roundcube_pass" | debconf-set-selections
+	  	echo "roundcube-core roundcube/app-password-confirm password $roundcube_pass" | debconf-set-selections
+	  	echo "            --> Installation"
+	  	apt-get -qy install roundcube roundcube-mysql 2>&1 | adddate >> isp.log 2>&1
+	  	echo "            --> Post-Configuration"
+	  	sed -i '1iAlias /webmail /var/lib/roundcube' /etc/roundcube/apache.conf
+	  	sed -i "s/\$rcmail_config\['default_host'\] = '';/\$rcmail_config\['default_host'\] = 'localhost';/" /etc/roundcube/main.inc.php
+	  	;;
 	"squirrelmail")
-	  echo "dictionaries-common dictionaries-common/default-wordlist select american (American English)" | debconf-set-selections
-	  echo ""
-	  echo "Veiller à ajouter les dossiers /usr/share/squirrelmail & /etc/squirrelmail aux PHP open_basedir dans les Options de chaques sites sur l'interface d'ISPconfig"
-	  echo ""
-	  apt-get -qy install squirrelmail wamerican 2>&1 | adddate >> isp.log 2>&1
-	  ln -s /etc/squirrelmail/apache.conf /etc/apache2/site-enabled/squirrelmail
-	  sed -i 1d /etc/squirrelmail/apache.conf
-	  sed -i '1iAlias /webmail /usr/share/squirrelmail' /etc/squirrelmail/apache.conf
+		echo "    * [Webmail : Squirrelmail]"
+		echo "            --> Pré-configuration"
+	  	echo "dictionaries-common dictionaries-common/default-wordlist select american (American English)" | debconf-set-selections
+	  	echo "            --> Installation"
+	  	apt-get -qy install squirrelmail wamerican 2>&1 | adddate >> isp.log 2>&1
+	  	echo "            --> Post-Configuration"
+	  	ln -s /etc/squirrelmail/apache.conf /etc/apache2/site-enabled/squirrelmail
+	  	ln -s /etc/squirrelmail/apache.conf /etc/apache2/conf-enabled/squirrelmail
+	  	sed -i 1d /etc/squirrelmail/apache.conf
+	  	sed -i '1iAlias /webmail /usr/share/squirrelmail' /etc/squirrelmail/apache.conf
+	  	cat >> /etc/squirrelmail/apache.conf <<"EOF"
+	  	<Location /webmail>
+		<IfModule suphp_module>
+	  	suPHP_Engine Off
+		AddHandler php5-script  .php
+		</IfModule>
+		php_admin_value open_basedir "/usr/share/squirrelmail/:/etc/squirrelmail:/usr/share/squirrelmail/config/:/etc/mailname/:/var/lib/squirrelmail/data:/var/spool/squirrelmail/attach"
+		</Location>
+EOF
 
-	  case $MTA in
+	case $MTA in
 		"courier")
-		  sed -i 's/$imap_server_type       = "other";/$imap_server_type       = "courier";/' /etc/squirrelmail/config.php
-		  sed -i 's/$optional_delimiter     = "detect";/$optional_delimiter     = ".";/' /etc/squirrelmail/config.php
-		  sed -i 's/$default_folder_prefix          = "";/$default_folder_prefix          = "INBOX.";/' /etc/squirrelmail/config.php
-		  sed -i 's/$trash_folder                   = "INBOX.Trash";/$trash_folder                   = "Trash";/' /etc/squirrelmail/config.php
-		  sed -i 's/$sent_folder                    = "INBOX.Sent";/$sent_folder                    = "Sent";/' /etc/squirrelmail/config.php
-		  sed -i 's/$draft_folder                   = "INBOX.Drafts";/$draft_folder                   = "Drafts";/' /etc/squirrelmail/config.php
-		  sed -i 's/$default_sub_of_inbox           = true;/$default_sub_of_inbox           = false;/' /etc/squirrelmail/config.php
-		  sed -i 's/$delete_folder                  = false;/$delete_folder                  = true;/' /etc/squirrelmail/config.php
-		  ;;
+		  	sed -i 's/$imap_server_type       = "other";/$imap_server_type       = "courier";/' /etc/squirrelmail/config.php
+		  	sed -i 's/$optional_delimiter     = "detect";/$optional_delimiter     = ".";/' /etc/squirrelmail/config.php
+		  	sed -i 's/$default_folder_prefix          = "";/$default_folder_prefix          = "INBOX.";/' /etc/squirrelmail/config.php
+		  	sed -i 's/$trash_folder                   = "INBOX.Trash";/$trash_folder                   = "Trash";/' /etc/squirrelmail/config.php
+		  	sed -i 's/$sent_folder                    = "INBOX.Sent";/$sent_folder                    = "Sent";/' /etc/squirrelmail/config.php
+		  	sed -i 's/$draft_folder                   = "INBOX.Drafts";/$draft_folder                   = "Drafts";/' /etc/squirrelmail/config.php
+		  	sed -i 's/$default_sub_of_inbox           = true;/$default_sub_of_inbox           = false;/' /etc/squirrelmail/config.php
+		  	sed -i 's/$delete_folder                  = false;/$delete_folder                  = true;/' /etc/squirrelmail/config.php
+		  	;;
 		"dovecot")
-		  sed -i 's/$imap_server_type       = "other";/$imap_server_type       = "dovecot";/' /etc/squirrelmail/config.php
-		  sed -i 's/$trash_folder                   = "INBOX.Trash";/$trash_folder                   = "Trash";/' /etc/squirrelmail/config.php
-		  sed -i 's/$sent_folder                    = "INBOX.Sent";/$sent_folder                    = "Sent";/' /etc/squirrelmail/config.php
-		  sed -i 's/$draft_folder                   = "INBOX.Drafts";/$draft_folder                   = "Drafts";/' /etc/squirrelmail/config.php
-		  sed -i 's/$default_sub_of_inbox           = true;/$default_sub_of_inbox           = false;/' /etc/squirrelmail/config.php
-		  sed -i 's/$delete_folder                  = false;/$delete_folder                  = true;/' /etc/squirrelmail/config.php
-		  ;;
-	  esac
+		  	sed -i 's/$imap_server_type       = "other";/$imap_server_type       = "dovecot";/' /etc/squirrelmail/config.php
+		  	sed -i 's/$trash_folder                   = "INBOX.Trash";/$trash_folder                   = "Trash";/' /etc/squirrelmail/config.php
+		  	sed -i 's/$sent_folder                    = "INBOX.Sent";/$sent_folder                    = "Sent";/' /etc/squirrelmail/config.php
+		  	sed -i 's/$draft_folder                   = "INBOX.Drafts";/$draft_folder                   = "Drafts";/' /etc/squirrelmail/config.php
+		  	sed -i 's/$default_sub_of_inbox           = true;/$default_sub_of_inbox           = false;/' /etc/squirrelmail/config.php
+		  	sed -i 's/$delete_folder                  = false;/$delete_folder                  = true;/' /etc/squirrelmail/config.php
+		  	;;
+	esac
 	  ;;
   esac
   service apache2 restart 2>&1 | adddate >> isp.log 2>&1
