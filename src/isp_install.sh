@@ -1,10 +1,11 @@
 #!/bin/bash
 
+
 install_initial_tools() {
 	echo "---------------------------"
 	echo " >> [INSTALLATION DES DEPENDANCES]"
 	echo "        --> Installation des outils d'administration initiaux."
-	apt-get -qy install ssh debconf-utils dnsutils unzip rkhunter binutils sudo bzip2 openssl zip ntp ntpdate 2>&1 | logmanager
+	apt-get -qy install ssh systemctl debconf-utils unzip rkhunter binutils sudo expect bzip2 openssl zip ntp ntpdate 2>&1 | logmanager
 }
 
 
@@ -18,7 +19,12 @@ go_dash() {
 install_mysql() {
 	echo "mysql-server-5.5 mysql-server/root_password password $mysql_pass" | debconf-set-selections
 	echo "mysql-server-5.5 mysql-server/root_password_again password $mysql_pass" | debconf-set-selections
-	apt-get -qy install mysql-client mysql-server 2>&1 | logmanager
+	apt-get -qy install mariadb-client mariadb-server 2>&1 | logmanager
+	updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'default-character-set' 'default-character-set = utf8'
+    updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character-set-server' 'character-set-server  = utf8'
+    updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character-set-server' 'collation-server      = utf8_general_ci'
+    updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character_set_server' 'character_set_server   = utf8'
+    updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'collation_server' 'collation_server       = utf8_general_ci'
 	sed -i 's/bind-address = 127.0.0.1/#bind-address = 127.0.0.1/' /etc/mysql/my.cnf
 	/etc/init.d/mysql restart 2>&1 | logmanager
 }
@@ -26,7 +32,7 @@ install_mysql() {
 
 install_postfix() {
 	echo "postfix postfix/main_mailer_type select Internet Site" | debconf-set-selections
-	echo "postfix postfix/mailname string $HOSTNAMEFQDN" | debconf-set-selections
+	echo "postfix postfix/mailname string $HOSTNAME.$DOMAIN" | debconf-set-selections
 	apt-get -qy install postfix postfix-mysql postfix-doc 2>&1 | logmanager
 	sed -i 's|#submission inet n - - - - smtpd|submission inet n - - - - smtpd|' /etc/postfix/master.cf
 	sed -i 's|# -o syslog_name=postfix/submission| -o syslog_name=postfix/submission|' /etc/postfix/master.cf
@@ -54,8 +60,8 @@ install_MTA() {
 			rm -f /etc/courier/pop3d.pem
 			rm -f /usr/lib/courier/imapd.pem
 			rm -f /usr/lib/courier/pop3d.pem
-			sed -i "s/CN=localhost/CN=${CFG_HOSTNAME_FQDN}/" /etc/courier/imapd.cnf
-			sed -i "s/CN=localhost/CN=${CFG_HOSTNAME_FQDN}/" /etc/courier/pop3d.cnf
+			sed -i "s/CN=localhost/CN=$(hostname -f)/" /etc/courier/imapd.cnf
+			sed -i "s/CN=localhost/CN=$(hostname -f)/" /etc/courier/pop3d.cnf
 			mkimapdcert > /dev/null 2>&1
 			mkpop3dcert > /dev/null 2>&1
 			ln -s /usr/lib/courier/imapd.pem /etc/courier/imapd.pem
@@ -71,7 +77,7 @@ install_MTA() {
 			echo "courier-base courier-base/webadmin-configmode boolean false" | debconf-set-selections
 			echo "courier-ssl courier-ssl/certnotice note" | debconf-set-selections
 			echo "            --> Installation"
-			apt-get -qy install getmail4 dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-sieve 2>&1 | logmanager
+			apt-get -qy install getmail4 dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-lmtpd dovecot-sieve 2>&1 | logmanager
 			;;
 	esac
 }
@@ -80,7 +86,7 @@ install_MTA() {
 install_antivirus() {
 	echo "    * [amavisd spamassassin clamav & lib Perl]"
 	echo "            --> Installation"
-	apt-get -qy install amavisd-new spamassassin clamav clamav-daemon zoo unzip bzip2 arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl libnet-dns-perl 2>&1 | logmanager 
+	apt-get -qy install amavisd-new spamassassin clamav clamav-daemon zoo arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl libnet-dns-perl 2>&1 | logmanager 
 	echo "            --> Mise à jour de la base de signature ClamAV"
 	killall freshclam 2>&1 | logmanager
 	freshclam 2>&1 | logmanager 
@@ -95,17 +101,13 @@ install_antivirus() {
 install_apache_php() {
 	echo "    * [Apache2, PHP5 & lib]"
 	echo "            --> Préconfiguration"
-	echo 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2' | debconf-set-selections
-	#Bug potentiel sur les 2 commandes suivantes :
-	echo 'phpmyadmin phpmyadmin/dbconfig-reinstall boolean false' | debconf-set-selections
-	echo 'phpmyadmin phpmyadmin/dbconfig-install boolean false' | debconf-set-selections
 	echo 'phpmyadmin phpmyadmin/mysql/admin-pass password '$mysql_pass | debconf-set-selections
 	echo 'phpmyadmin phpmyadmin/mysql/app-pass password '$phpma_pass | debconf-set-selections
 	echo 'phpmyadmin phpmyadmin/app-password-confirm password '$pma_pass | debconf-set-selections
 	echo "            --> Installation"
 	# libapache2-mod-suphp & libapache2-mod-ruby  retiré des dépots debian pour des raisons de sécurité
 	# si besoin de ruby : libapache2-passange
-	apt-get install -qy apache2 apache2.2-common apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert libapache2-mod-php5 php5 php5-common php5-gd php5-mysql php5-imap phpmyadmin php5-cli php5-cgi libapache2-mod-fcgid apache2-suexec php-pear php-auth php5-mcrypt mcrypt php5-imagick imagemagick libruby libapache2-mod-python php5-curl php5-intl php5-memcache php5-memcached php5-pspell php5-recode php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached libapache2-mod-passenger 2>&1 | logmanager 
+	apt-get install -qy apache2 apache2.2-common apache2-doc apache2-mpm-prefork apache2-utils libexpat1 ssl-cert libapache2-mod-php5 php5 php5-common php5-gd php5-mysql php5-imap php5-cli php5-cgi libapache2-mod-fcgid apache2-suexec php-pear php-auth php5-mcrypt mcrypt php5-imagick imagemagick libruby libapache2-mod-python php5-curl php5-intl php5-memcache php5-memcached php5-pspell php5-recode php5-sqlite php5-tidy php5-xmlrpc php5-xsl memcached libapache2-mod-passenger 2>&1 | logmanager 
 	if [ $ruby == "true" ]; then
 			apt-get install -qy libapache2-passange 2>&1 | logmanager
 	fi
@@ -119,7 +121,17 @@ install_apache_php() {
 	apt-get install -qy php5-xcache 2>&1 | logmanager
 	apt-get -qy install libapache2-mod-fastcgi php5-fpm 2>&1 | logmanager
 	a2enmod actions fastcgi alias 2>&1 | logmanager
-	echo ServerName $HOSTNAMEFQDN >> /etc/apache2/apache2.conf
+	echo ServerName $HOSTNAME.$DOMAIN >> /etc/apache2/apache2.conf
+	/etc/init.d/apache2 restart 2>&1 | logmanager
+}
+
+
+install_PhpMyAdmin() {
+	echo 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2' | debconf-set-selections
+	#Bug précédement observé (Debian 7) sur les commandes suivantes.
+	echo 'phpmyadmin phpmyadmin/dbconfig-reinstall boolean false' | debconf-set-selections
+	echo 'phpmyadmin phpmyadmin/dbconfig-install boolean false' | debconf-set-selections
+	apt-get -qy install phpmyadmin 2>&1 | logmanager
 	/etc/init.d/apache2 restart 2>&1 | logmanager
 }
 
@@ -146,7 +158,7 @@ install_quotas() {
 		mount -o remount / 2>&1 | logmanager
 		quotacheck -avugm 2>&1 | logmanager
 		quotaon -avug 2>&1 | logmanager
-  	fi
+	fi
 }
 
 	
@@ -309,67 +321,86 @@ EOF
 
 
 Install_Webmail() {
-  case $webmail in
-	"roundcube")
-		echo "    * [Webmail : Roundcube]"
-		echo "            --> Pré-configuration"
-	  	echo "roundcube-core roundcube/dbconfig-install boolean true" | debconf-set-selections
-	  	echo "roundcube-core roundcube/database-type select mysql" | debconf-set-selections
-	  	echo "roundcube-core roundcube/mysql/admin-pass password $mysql_pass" | debconf-set-selections
-	  	echo "roundcube-core roundcube/db/dbname string roundcube" | debconf-set-selections
-	  	echo "roundcube-core roundcube/mysql/app-pass password $roundcube_pass" | debconf-set-selections
-	  	echo "roundcube-core roundcube/app-password-confirm password $roundcube_pass" | debconf-set-selections
-	  	echo "            --> Installation"
-	  	apt-get -qy install roundcube roundcube-mysql 2>&1 | logmanager
-	  	echo "            --> Post-Configuration"
-	  	sed -i '1iAlias /webmail /var/lib/roundcube' /etc/roundcube/apache.conf
-	  	sed -i "s/\$rcmail_config\['default_host'\] = '';/\$rcmail_config\['default_host'\] = 'localhost';/" /etc/roundcube/main.inc.php
-	  	;;
-	"squirrelmail")
-		echo "    * [Webmail : Squirrelmail]"
-		echo "            --> Pré-configuration"
-	  	echo "dictionaries-common dictionaries-common/default-wordlist select american (American English)" | debconf-set-selections
-	  	echo "            --> Installation"
-	  	apt-get -qy install squirrelmail wamerican 2>&1 | logmanager
-	  	echo "            --> Post-Configuration"
-	  	ln -s /etc/squirrelmail/apache.conf /etc/apache2/sites-enabled/squirrelmail
-	  	sed -i 1d /etc/squirrelmail/apache.conf
-	  	sed -i '1iAlias /webmail /usr/share/squirrelmail' /etc/squirrelmail/apache.conf
-	  	cat >> /etc/squirrelmail/apache.conf <<"EOF"
+	case $webmail in
+		"squirrelmail")
+			echo "    * [Webmail : Squirrelmail]"
+			echo "            --> Pré-configuration"
+			echo "dictionaries-common dictionaries-common/default-wordlist select american (American English)" | debconf-set-selections
+			echo "            --> Installation"
+			apt-get -qy install squirrelmail wamerican 2>&1 | logmanager
+			echo "            --> Post-Configuration"
+			ln -s /etc/squirrelmail/apache.conf /etc/apache2/sites-enabled/squirrelmail
+			sed -i 1d /etc/squirrelmail/apache.conf
+			sed -i '1iAlias /webmail /usr/share/squirrelmail' /etc/squirrelmail/apache.conf
+			cat >> /etc/squirrelmail/apache.conf <<"EOF"
 <Location /webmail>
-        <IfModule suphp_module>
-                suPHP_Engine Off
-                AddHandler php5-script  .php
-        </IfModule>
-        php_admin_value open_basedir "/usr/share/squirrelmail/:/etc/squirrelmail:/usr/share/squirrelmail/config/:/etc/mailname/:/var/lib/squirrelmail/data:/var/spool/squirrelmail/attach"
+		<IfModule suphp_module>
+				suPHP_Engine Off
+				AddHandler php5-script  .php
+		</IfModule>
+		php_admin_value open_basedir "/usr/share/squirrelmail/:/etc/squirrelmail:/usr/share/squirrelmail/config/:/etc/mailname/:/var/lib/squirrelmail/data:/var/spool/squirrelmail/attach"
 </Location>
-
 EOF
-
-	case $MTA in
-		"courier")
-		  	sed -i 's/$imap_server_type       = "other";/$imap_server_type       = "courier";/' /etc/squirrelmail/config.php
-		  	sed -i 's/$optional_delimiter     = "detect";/$optional_delimiter     = ".";/' /etc/squirrelmail/config.php
-		  	sed -i 's/$default_folder_prefix          = "";/$default_folder_prefix          = "INBOX.";/' /etc/squirrelmail/config.php
-		  	sed -i 's/$trash_folder                   = "INBOX.Trash";/$trash_folder                   = "Trash";/' /etc/squirrelmail/config.php
-		  	sed -i 's/$sent_folder                    = "INBOX.Sent";/$sent_folder                    = "Sent";/' /etc/squirrelmail/config.php
-		  	sed -i 's/$draft_folder                   = "INBOX.Drafts";/$draft_folder                   = "Drafts";/' /etc/squirrelmail/config.php
-		  	sed -i 's/$default_sub_of_inbox           = true;/$default_sub_of_inbox           = false;/' /etc/squirrelmail/config.php
-		  	sed -i 's/$delete_folder                  = false;/$delete_folder                  = true;/' /etc/squirrelmail/config.php
-		  	;;
-		"dovecot")
-		  	sed -i 's/$imap_server_type       = "other";/$imap_server_type       = "dovecot";/' /etc/squirrelmail/config.php
-		  	sed -i 's/$trash_folder                   = "INBOX.Trash";/$trash_folder                   = "Trash";/' /etc/squirrelmail/config.php
-		  	sed -i 's/$sent_folder                    = "INBOX.Sent";/$sent_folder                    = "Sent";/' /etc/squirrelmail/config.php
-		  	sed -i 's/$draft_folder                   = "INBOX.Drafts";/$draft_folder                   = "Drafts";/' /etc/squirrelmail/config.php
-		  	sed -i 's/$default_sub_of_inbox           = true;/$default_sub_of_inbox           = false;/' /etc/squirrelmail/config.php
-		  	sed -i 's/$delete_folder                  = false;/$delete_folder                  = true;/' /etc/squirrelmail/config.php
-		  	;;
+			case $MTA in
+				"courier")
+					sed -i 's/$imap_server_type       = "other";/$imap_server_type       = "courier";/' /etc/squirrelmail/config.php
+					sed -i 's/$optional_delimiter     = "detect";/$optional_delimiter     = ".";/' /etc/squirrelmail/config.php
+					sed -i 's/$default_folder_prefix          = "";/$default_folder_prefix          = "INBOX.";/' /etc/squirrelmail/config.php
+					sed -i 's/$trash_folder                   = "INBOX.Trash";/$trash_folder                   = "Trash";/' /etc/squirrelmail/config.php
+					sed -i 's/$sent_folder                    = "INBOX.Sent";/$sent_folder                    = "Sent";/' /etc/squirrelmail/config.php
+					sed -i 's/$draft_folder                   = "INBOX.Drafts";/$draft_folder                   = "Drafts";/' /etc/squirrelmail/config.php
+					sed -i 's/$default_sub_of_inbox           = true;/$default_sub_of_inbox           = false;/' /etc/squirrelmail/config.php
+					sed -i 's/$delete_folder                  = false;/$delete_folder                  = true;/' /etc/squirrelmail/config.php
+				;;
+				"dovecot")
+					sed -i 's/$imap_server_type       = "other";/$imap_server_type       = "dovecot";/' /etc/squirrelmail/config.php
+					sed -i 's/$trash_folder                   = "INBOX.Trash";/$trash_folder                   = "Trash";/' /etc/squirrelmail/config.php
+					sed -i 's/$sent_folder                    = "INBOX.Sent";/$sent_folder                    = "Sent";/' /etc/squirrelmail/config.php
+					sed -i 's/$draft_folder                   = "INBOX.Drafts";/$draft_folder                   = "Drafts";/' /etc/squirrelmail/config.php
+					sed -i 's/$default_sub_of_inbox           = true;/$default_sub_of_inbox           = false;/' /etc/squirrelmail/config.php
+					sed -i 's/$delete_folder                  = false;/$delete_folder                  = true;/' /etc/squirrelmail/config.php
+				;;
+			esac
+		;;
+		"roundcube")
+			# Le package Roundcube n'est pas disponible sous Debian 8
+				#echo "    * [Webmail : Roundcube]"
+				#echo "            --> Pré-configuration"
+				#echo "roundcube-core roundcube/dbconfig-install boolean true" | debconf-set-selections
+				#echo "roundcube-core roundcube/database-type select mysql" | debconf-set-selections
+				#echo "roundcube-core roundcube/mysql/admin-pass password $mysql_pass" | debconf-set-selections
+				#echo "roundcube-core roundcube/db/dbname string roundcube" | debconf-set-selections
+				#echo "roundcube-core roundcube/mysql/app-pass password $roundcube_pass" | debconf-set-selections
+				#echo "roundcube-core roundcube/app-password-confirm password $roundcube_pass" | debconf-set-selections
+				#echo "            --> Installation"
+				#apt-get -qy install roundcube roundcube-mysql 2>&1 | logmanager
+				#echo "            --> Post-Configuration"
+				#sed -i '1iAlias /webmail /var/lib/roundcube' /etc/roundcube/apache.conf
+				#sed -i "s/\$rcmail_config\['default_host'\] = '';/\$rcmail_config\['default_host'\] = 'localhost';/" /etc/roundcube/main.inc.php
+		;;
+		"horde")
+			###ON PROGRESS###
+			apt-get install -qy php5-sasl libssh2-php php5-geoip php5-ldap 2>&1 | logmanager
+			pear channel-discover pear.horde.org
+			pear install horde/horde_role
+			expect/./HordeRole "${hordedirectory}"
+			mysql -u root --password=${mysqlpassword} --batch --silent -e "CREATE DATABASE ${hordedatabase}; GRANT ALL ON ${hordedatabase}.* TO ${hordeuser}@localhost IDENTIFIED BY '${hordepassword}'; FLUSH PRIVILEGES;";
+			./hordewebmailexpect "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordefilesystem}" "${hordeadmin}" "${hordemysql}"
+			mkdir "${hordefilesystem}/phptmp/"
+			chown -R www-data:www-data "${hordefilesystem}"
+			#Vérifier version.
+			pear install channel://pear.php.net/MDB2_Driver_mysql-1.5.0b4
+			pear install channel://pear.php.net/HTTP_WebDAV_Server-1.0.0RC7
+			pear install channel://pear.php.net/XML_Serializer-0.20.2
+			pear install channel://pear.php.net/Date_Holidays-0.21.8
+			pear install Net_LDAP
+			pear install pear/HTTP_Request2
+			pear install channel://pear.php.net/Console_Color2-0.1.2
+			###ON PROGRESS###
 	esac
-	  ;;
-  esac
-  service apache2 restart 2>&1 | logmanager
+	service apache2 restart 2>&1 | logmanager
 }
+
 
 isp_install() {
 	cd /tmp
