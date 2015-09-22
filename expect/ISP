@@ -1,0 +1,39 @@
+#!/usr/bin/expect
+
+set mysql_pass [lindex $argv 0]
+set ISPdatabase [lindex $argv 1]
+set ISPSSLcountry [lindex $argv 2]
+set ISPSSLstate [lindex $argv 3]
+set ISPSSLcity [lindex $argv 4]
+set ISPSSLorganization [lindex $argv 5]
+set ISPSSLunit [lindex $argv 6]
+set HOSTNAMEFQDN [lindex $argv 7]
+set ISPSSLemail [lindex $argv 8]
+set ISPport [lindex $argv 9]
+
+spawn php -q /tmp/ispconfig3_install/install/install.php
+
+while {1} {
+    expect {
+        -re {Select language .*\[.*\]:}          {send \r}
+        -re {Installation mode .*\[.*\]:}        {send \r}
+        -re {Full qualified hostname .*\[.*\]:}  {send \r}
+        -re {MySQL server hostname .*\[.*\]:}    {send \r}
+        -re {MySQL root username .*\[.*\]:}      {send \r}
+        -re {MySQL root password .*\[.*\]:}      {send $mysql_pass\r}
+        -re {MySQL database .*\[.*\]:}           {send $ISPdatabase\r}
+        -re {MySQL charset .*\[.*\]:}            {send \r}
+        -re {Country Name .*\[.*\]:}             {send $ISPSSLcountry\r}
+        -re {State or Province .*\[.*\]:}        {send $ISPSSLstate\r}
+        -re {Locality Name .*\[.*\]:}            {send $ISPSSLcity\r}
+        -re {Organization Name .*\[.*\]:}        {send $ISPSSLorganization\r}
+        -re {Organizational Unit .*\[.*\]:}      {send $ISPSSLunit\r}
+        -re {Common Name .*\[.*\]:}              {send $HOSTNAMEFQDN\r}
+        -re {Email Address .*\[.*\]:}            {send $ISPSSLemail\r}
+        -re {ISPConfig Port .*\[.*\]:}           {send $ISPport\r}
+        -re {Do you want a secure .*\[.*\]:}     {send \r}
+        -re {A challenge password .*\[.*\]:}     {send \r}
+        -re {An optional company .*\[.*\]:} {send \r}
+        eof                                      {break}
+    }
+}

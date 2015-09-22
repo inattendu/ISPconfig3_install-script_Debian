@@ -5,8 +5,9 @@ conf_name() {
 	echo "        --> Fichier HOSTS"
 	rm /etc/hosts
 	rm /etc/hostname
-	echo -e '127.0.0.1\t\t'$HOSTNAMEFQDN'\t'$HOSTNAMESHORT'\t localhost' >> /etc/hosts
-	echo -e $serverIP'\t\t'$HOSTNAMEFQDN'\t'$HOSTNAMESHORT >> /etc/hosts
+	HOSTNAMEFQDN = $HOSTNAME'.'$DOMAIN
+	echo -e '127.0.0.1\t\t'$HOSTNAMEFQDN'\t'$HOSTNAME'\t localhost' >> /etc/hosts
+	echo -e $serverIP'\t\t'$HOSTNAMEFQDN'\t'$HOSTNAME >> /etc/hosts
 	echo "        --> Fichier HOSTNAME"
 	echo $HOSTNAMEFQDN > /etc/hostname
 	echo "        --> Validation des modifications"

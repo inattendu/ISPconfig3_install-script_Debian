@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#Poser la question pour freshclam pendant l'install, temporairement désactivé pour test isp_install.sh ligne 86
-
 source isp.conf
 source src/logmanager.sh
 source src/pre_conf.sh

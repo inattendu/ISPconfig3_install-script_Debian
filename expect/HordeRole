@@ -1,6 +1,6 @@
 #!/usr/bin/expect
 
-set hordefilesystem [lindex $argv 0]
+set hordedirectory [lindex $argv 0]
 
 
 spawn pear run-scripts horde/horde_role
@@ -8,7 +8,7 @@ spawn pear run-scripts horde/horde_role
 
 while {1} {
     expect {
-        -re {Filesystem location .*}            {send $hordefilesystem\r}
+        -re {Filesystem location .*}            {send $hordedirectory\r}
         eof                                     {break}
     }
 }

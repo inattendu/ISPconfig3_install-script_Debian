@@ -1,6 +1,7 @@
 #!/bin/bash
 
 
+
 install_initial_tools() {
 	echo "---------------------------"
 	echo " >> [INSTALLATION DES DEPENDANCES]"
@@ -20,11 +21,9 @@ install_mysql() {
 	echo "mysql-server-5.5 mysql-server/root_password password $mysql_pass" | debconf-set-selections
 	echo "mysql-server-5.5 mysql-server/root_password_again password $mysql_pass" | debconf-set-selections
 	apt-get -qy install mariadb-client mariadb-server 2>&1 | logmanager
-	updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'default-character-set' 'default-character-set = utf8'
-    updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character-set-server' 'character-set-server  = utf8'
-    updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character-set-server' 'collation-server      = utf8_general_ci'
-    updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'character_set_server' 'character_set_server   = utf8'
-    updateSettings "/etc/mysql/conf.d/mariadb.cnf" 'collation_server' 'collation_server       = utf8_general_ci'
+	sed -i 's|default-character-set|default-character-set = utf8|' /etc/mysql/conf.d/mariadb.cnf
+	sed -i 's|character-set-server|character-set-server   = utf8|' /etc/mysql/conf.d/mariadb.cnf
+	sed -i 's|collation-server|collation-server       = utf8_general_ci|' /etc/mysql/conf.d/mariadb.cnf
 	sed -i 's/bind-address = 127.0.0.1/#bind-address = 127.0.0.1/' /etc/mysql/my.cnf
 	/etc/init.d/mysql restart 2>&1 | logmanager
 }
@@ -87,15 +86,19 @@ install_antivirus() {
 	echo "    * [amavisd spamassassin clamav & lib Perl]"
 	echo "            --> Installation"
 	apt-get -qy install amavisd-new spamassassin clamav clamav-daemon zoo arj nomarch lzop cabextract apt-listchanges libnet-ldap-perl libauthen-sasl-perl clamav-docs daemon libio-string-perl libio-socket-ssl-perl libnet-ident-perl libnet-dns-perl 2>&1 | logmanager 
-	echo "            --> Mise à jour de la base de signature ClamAV"
-	killall freshclam 2>&1 | logmanager
-	freshclam 2>&1 | logmanager 
+	if [[ $MajAntivirus == "true" ]]; then
+		echo "            --> Mise à jour de la base de signature ClamAV"
+		killall freshclam 2>&1 | logmanager
+		freshclam 2>&1 | logmanager 
+	else
+		echo "            --> Le téléchargement de base de signature ClamAV à été désactivé"
+		killall freshclam 2>&1 | logmanager
+	fi
 	echo "            --> Postconfiguration (autostart outils AV)"
 	/etc/init.d/clamav-daemon start 2>&1 | logmanager
 	/etc/init.d/spamassassin stop 2>&1 | logmanager
 	update-rc.d -f spamassassin remove 2>&1 | logmanager
 }
-
 
 
 install_apache_php() {
@@ -295,7 +298,7 @@ EOF
 
 
 install_mailman() {
-	#(saisie utilisateur requise en cas d'installation)
+	#(saisie utilisateur requise en cas d'installation) Expect à venir
 	apt-get install -qy mailman 
 	newlist mailman
 	rm /etc/aliases
@@ -379,24 +382,79 @@ EOF
 				#sed -i "s/\$rcmail_config\['default_host'\] = '';/\$rcmail_config\['default_host'\] = 'localhost';/" /etc/roundcube/main.inc.php
 		;;
 		"horde")
-			###ON PROGRESS###
 			apt-get install -qy php5-sasl libssh2-php php5-geoip php5-ldap 2>&1 | logmanager
 			pear channel-discover pear.horde.org
 			pear install horde/horde_role
 			expect/./HordeRole "${hordedirectory}"
-			mysql -u root --password=${mysqlpassword} --batch --silent -e "CREATE DATABASE ${hordedatabase}; GRANT ALL ON ${hordedatabase}.* TO ${hordeuser}@localhost IDENTIFIED BY '${hordepassword}'; FLUSH PRIVILEGES;";
-			./hordewebmailexpect "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordefilesystem}" "${hordeadmin}" "${hordemysql}"
-			mkdir "${hordefilesystem}/phptmp/"
-			chown -R www-data:www-data "${hordefilesystem}"
-			#Vérifier version.
-			pear install channel://pear.php.net/MDB2_Driver_mysql-1.5.0b4
-			pear install channel://pear.php.net/HTTP_WebDAV_Server-1.0.0RC7
-			pear install channel://pear.php.net/XML_Serializer-0.20.2
-			pear install channel://pear.php.net/Date_Holidays-0.21.8
+			mysql -u root --password=${mysql_pwd} --batch --silent -e "CREATE DATABASE ${hordedatabase}; GRANT ALL ON ${hordedatabase}.* TO ${hordeuser}@localhost IDENTIFIED BY '${hordepassword}'; FLUSH PRIVILEGES;";
+			expect/./HordeWebmail "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordedirectory}" "${hordeadmin}" "${hordemysql}"
+			mkdir "${hordedirectory}/phptmp/"
+			chown -R www-data:www-data "${hordedirectory}"
+			pear install MDB2_Driver_mysql
+			pear install HTTP_WebDAV_Server
+			pear install XML_Serializer
+			pear install Date_Holidays
 			pear install Net_LDAP
-			pear install pear/HTTP_Request2
-			pear install channel://pear.php.net/Console_Color2-0.1.2
-			###ON PROGRESS###
+			pear install HTTP_Request2
+			pear install Console_Color2			
+            echo "Alias /Microsoft-Server-ActiveSync ${hordedirectory}/rpc.php
+Alias /horde ${hordedirectory}
+Alias /autodiscover/autodiscover.xml ${hordedirectory}/rpc.php
+Alias /Autodiscover/Autodiscover.xml ${hordedirectory}/rpc.php
+Alias /AutoDiscover/AutoDiscover.xml ${hordedirectory}/rpc.php
+<Directory ${hordedirectory}>
+           Options +FollowSymLinks
+           AllowOverride All
+           order allow,deny
+           allow from all
+           AddType application/x-httpd-php .php
+           php_value include_path \".:/usr/share/php\"
+           php_value open_basedir \"none\"
+           php_value upload_tmp_dir \"${hordedirectory}/phptmp/\"
+</Directory>" > /etc/apache2/conf-available/horde.conf
+            a2enconf horde
+            #Sed à valider (retour chariot)
+            sed -i 's|    RewriteEngine On|    RewriteEngine On\n    RewriteBase \/horde|' /var/www/horde/.htaccess
+            ##Permetre aux user de modifier leur mot de passe (optionel)
+            pear install -a -B horde/passwd
+            chown -R www-data:www-data "${hordedirectory}/passwd"
+            cp -a "${hordedirectory}/passwd/config/backends.php" "${hordedirectory}/passwd/config/backends.local.php"
+            echo "\$backends['sql'] = array (
+  'disabled' => false,
+  'name' => 'SQL Server',
+  'preferred' => '',
+  'policy' => array(
+    'minLength' => 7,
+    'maxLength' => 64,
+    'maxSpace' => 0,
+    'minNumeric' => 1,
+  ),
+  'driver' => 'Sql',
+  'params' => array(
+    'phptype' => 'mysql',
+    'hostspec' => 'localhost',
+    'username' => 'root',
+    'password' => '${hordepassword}',
+    'encryption' => 'crypt-md5',
+    'database' => '${hordedatabase}',
+    'table' => 'mail_user',
+    'user_col' => 'email',
+    'pass_col' => 'password',
+    'show_encryption' => false
+    // The following two settings allow you to specify custom queries for
+    // lookup and modify functions if special functions need to be
+    // performed. In places where a username or a password needs to be
+    // used, refer to this placeholder reference:
+    // %d -> gets substituted with the domain
+    // %u -> gets substituted with the user
+    // %U -> gets substituted with the user without a domain part
+    // %p -> gets substituted with the plaintext password
+    // %e -> gets substituted with the encrypted password
+    //
+    // 'query_lookup' => 'SELECT user_pass FROM horde_users WHERE user_uid = %u',
+   // 'query_modify' => 'UPDATE horde_users SET user_pass = %e WHERE user_uid = %u',
+  ),
+);" > "${hordedirectory}/passwd/config/backends.local.php"
 	esac
 	service apache2 restart 2>&1 | logmanager
 }
@@ -407,5 +465,6 @@ isp_install() {
 	wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz 2>&1 | logmanager
 	tar xfz ISPConfig-3-stable.tar.gz 2>&1 | logmanager
 	cd ispconfig3_install/install/
-	php -q install.php
+	#php -q install.php
+	expect/./ISP "${mysql_pass}" "${ISPdatabase}" "${ISPSSLcountry}" "${ISPSSLstate}" "${ISPSSLcity}" "${ISPSSLorganization}" "${ISPSSLunit}" "${HOSTNAMEFQDN}" "${ISPSSLemail}" "${ISPport}" 
 }
