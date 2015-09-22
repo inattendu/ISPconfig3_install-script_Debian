@@ -1,0 +1,25 @@
+debug
+
+22/09/15 15:22:45 | Suppression de exim4 (4.84-8) ...
+22/09/15 15:22:46 | dpkg: exim4-daemon-light : problème de dépendance, mais suppression comme demandé :
+22/09/15 15:22:46 |  bsd-mailx dépend de default-mta | mail-transport-agent ; cependant :
+22/09/15 15:22:46 |   Le paquet default-mta n'est pas installé.
+22/09/15 15:22:46 |   Le paquet exim4-daemon-light qui fournit default-mta doit être supprimé.
+22/09/15 15:22:46 |   Le paquet mail-transport-agent n'est pas installé.
+22/09/15 15:22:46 |   Le paquet exim4-daemon-light qui fournit mail-transport-agent doit être supprimé.
+22/09/15 15:22:46 |  bsd-mailx dépend de default-mta | mail-transport-agent ; cependant :
+22/09/15 15:22:46 |   Le paquet default-mta n'est pas installé.
+22/09/15 15:22:46 |   Le paquet exim4-daemon-light qui fournit default-mta doit être supprimé.
+22/09/15 15:22:46 |   Le paquet mail-transport-agent n'est pas installé.
+22/09/15 15:22:46 |   Le paquet exim4-daemon-light qui fournit mail-transport-agent doit être supprimé.
+22/09/15 15:22:46 | 
+22/09/15 15:22:46 | Suppression de exim4-daemon-light (4.84-8) ...
+22/09/15 15:22:46 | dpkg: exim4-config : problème de dépendance, mais suppression comme demandé :
+22/09/15 15:22:46 |  exim4-base dépend de exim4-config (>= 4.82) | exim4-config-2 ; cependant :
+22/09/15 15:22:46 |   Le paquet exim4-config doit être supprimé.
+22/09/15 15:22:46 |   Le paquet exim4-config-2 n'est pas installé.
+22/09/15 15:22:46 |   Le paquet exim4-config qui fournit exim4-config-2 doit être supprimé.
+22/09/15 15:22:46 |  exim4-base dépend de exim4-config (>= 4.82) | exim4-config-2 ; cependant :
+22/09/15 15:22:46 |   Le paquet exim4-config doit être supprimé.
+22/09/15 15:22:46 |   Le paquet exim4-config-2 n'est pas installé.
+22/09/15 15:22:46 |   Le paquet exim4-config qui fournit exim4-config-2 doit être supprimé.

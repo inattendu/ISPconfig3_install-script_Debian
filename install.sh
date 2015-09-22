@@ -5,6 +5,9 @@ source src/logmanager.sh
 source src/pre_conf.sh
 source src/isp_install.sh
 
+currentDIR=$(pwd)
+chmod +x expect/*
+
 if [ -f /etc/debian_version ] || [$SafeExec !== "true"]; then
 	echo -e " _____________________________\n|                             |\n|  Scrip de déploiement v1.0  |\n| by inattendu                |\n|_____________________________|\n\n"
 	conf_name

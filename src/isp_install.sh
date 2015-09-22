@@ -6,7 +6,7 @@ install_initial_tools() {
 	echo "---------------------------"
 	echo " >> [INSTALLATION DES DEPENDANCES]"
 	echo "        --> Installation des outils d'administration initiaux."
-	apt-get -qy install ssh systemctl debconf-utils unzip rkhunter binutils sudo expect bzip2 openssl zip ntp ntpdate 2>&1 | logmanager
+	apt-get -qy install ssh debconf-utils unzip rkhunter binutils sudo expect bzip2 openssl zip ntp ntpdate 2>&1 | logmanager
 }
 
 
@@ -383,21 +383,23 @@ EOF
 		;;
 		"horde")
 			apt-get install -qy php5-sasl libssh2-php php5-geoip php5-ldap 2>&1 | logmanager
-			pear channel-discover pear.horde.org
-			pear install horde/horde_role
-			expect/./HordeRole "${hordedirectory}"
-			mysql -u root --password=${mysql_pwd} --batch --silent -e "CREATE DATABASE ${hordedatabase}; GRANT ALL ON ${hordedatabase}.* TO ${hordeuser}@localhost IDENTIFIED BY '${hordepassword}'; FLUSH PRIVILEGES;";
-			expect/./HordeWebmail "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordedirectory}" "${hordeadmin}" "${hordemysql}"
-			mkdir "${hordedirectory}/phptmp/"
-			chown -R www-data:www-data "${hordedirectory}"
-			pear install MDB2_Driver_mysql
-			pear install HTTP_WebDAV_Server
-			pear install XML_Serializer
-			pear install Date_Holidays
-			pear install Net_LDAP
-			pear install HTTP_Request2
-			pear install Console_Color2			
-            echo "Alias /Microsoft-Server-ActiveSync ${hordedirectory}/rpc.php
+apt-get install -qy php5-sasl libssh2-php php5-geoip php5-ldap 2>&1 | logmanager
+pear channel-discover pear.horde.org 2>&1 | logmanager
+pear install horde/horde_role 2>&1 | logmanager
+expect/./HordeRole "${hordedirectory}" 2>&1 | logmanager
+pear install -a -B horde/webmail 2>&1 | logmanager
+mysql -u root --password=${mysql_pass} --batch --silent -e "CREATE DATABASE ${hordedatabase}; GRANT ALL ON ${hordedatabase}.* TO ${hordeuser}@localhost IDENTIFIED BY '${hordepassword}'; FLUSH PRIVILEGES;";  2>&1 | logmanager
+expect/./HordeWebmail "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordedirectory}" "${hordeadmin}" "${hordemysql}"  2>&1 | logmanager
+mkdir "${hordedirectory}/phptmp/" 2>&1 | logmanager
+chown -R www-data:www-data "${hordedirectory}" 2>&1 | logmanager
+pear install MDB2_Driver_mysql 2>&1 | logmanager
+pear install channel://pear.php.net/HTTP_WebDAV_Server-1.0.0RC8 2>&1 | logmanager
+pear install channel://pear.php.net/XML_Serializer-0.20.2 2>&1 | logmanager
+pear install channel://pear.php.net/Date_Holidays-0.21.8 2>&1 | logmanager
+pear install Net_LDAP 2>&1 | logmanager
+pear install HTTP_Request2 2>&1 | logmanager
+pear install channel://pear.php.net/Console_Color2-0.1.2 2>&1 | logmanager
+echo "Alias /Microsoft-Server-ActiveSync ${hordedirectory}/rpc.php
 Alias /horde ${hordedirectory}
 Alias /autodiscover/autodiscover.xml ${hordedirectory}/rpc.php
 Alias /Autodiscover/Autodiscover.xml ${hordedirectory}/rpc.php
@@ -411,14 +413,13 @@ Alias /AutoDiscover/AutoDiscover.xml ${hordedirectory}/rpc.php
            php_value include_path \".:/usr/share/php\"
            php_value open_basedir \"none\"
            php_value upload_tmp_dir \"${hordedirectory}/phptmp/\"
-</Directory>" > /etc/apache2/conf-available/horde.conf
-            a2enconf horde
-            #Sed à valider (retour chariot)
+</Directory>" > /etc/apache2/conf-available/horde.conf  2>&1 | logmanager
+            a2enconf horde  2>&1 | logmanager
             sed -i 's|    RewriteEngine On|    RewriteEngine On\n    RewriteBase \/horde|' /var/www/horde/.htaccess
             ##Permetre aux user de modifier leur mot de passe (optionel)
-            pear install -a -B horde/passwd
-            chown -R www-data:www-data "${hordedirectory}/passwd"
-            cp -a "${hordedirectory}/passwd/config/backends.php" "${hordedirectory}/passwd/config/backends.local.php"
+            pear install -a -B horde/passwd  2>&1 | logmanager
+            chown -R www-data:www-data "${hordedirectory}/passwd" 
+            cp -a "${hordedirectory}/passwd/config/backends.php" "${hordedirectory}/passwd/config/backends.local.php" 
             echo "\$backends['sql'] = array (
   'disabled' => false,
   'name' => 'SQL Server',
@@ -455,16 +456,12 @@ Alias /AutoDiscover/AutoDiscover.xml ${hordedirectory}/rpc.php
    // 'query_modify' => 'UPDATE horde_users SET user_pass = %e WHERE user_uid = %u',
   ),
 );" > "${hordedirectory}/passwd/config/backends.local.php"
-	esac
-	service apache2 restart 2>&1 | logmanager
+service apache2 restart  2>&1 | logmanager
 }
-
 
 isp_install() {
 	cd /tmp
 	wget http://www.ispconfig.org/downloads/ISPConfig-3-stable.tar.gz 2>&1 | logmanager
 	tar xfz ISPConfig-3-stable.tar.gz 2>&1 | logmanager
-	cd ispconfig3_install/install/
-	#php -q install.php
-	expect/./ISP "${mysql_pass}" "${ISPdatabase}" "${ISPSSLcountry}" "${ISPSSLstate}" "${ISPSSLcity}" "${ISPSSLorganization}" "${ISPSSLunit}" "${HOSTNAMEFQDN}" "${ISPSSLemail}" "${ISPport}" 
+	$currentDIR/expect/./ISP "${mysql_pass}" "${ISPdatabase}" "${ISPSSLcountry}" "${ISPSSLstate}" "${ISPSSLcity}" "${ISPSSLorganization}" "${ISPSSLunit}" "${HOSTNAMEFQDN}" "${ISPSSLemail}" "${ISPport}" 
 }

@@ -40,9 +40,4 @@ BETA USE, please read theses sripts before anthing else.
   * Install horde --> logmanager
 
 ## Just Done
-  * Déploiement de MariaDB au lieux de MySQL + patch conf post-install (testing)
-  * Ajout paquet expect
-  * Retrait de paquets doublon dans les phases d'installation
-  * PhpMyadmin optionnel
-  * Choix update ClamAV pendant l'installation
-  * Expect Horde
+  * Fix remove missing package systemctl
