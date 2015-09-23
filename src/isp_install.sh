@@ -385,10 +385,10 @@ EOF
 			apt-get install -qy php5-sasl libssh2-php php5-geoip php5-ldap 2>&1 | logmanager
 			pear channel-discover pear.horde.org 2>&1 | logmanager
 			pear install horde/horde_role 2>&1 | logmanager
-			expect/./HordeRole "${hordedirectory}" 2>&1 | logmanager
+			$currentDIR/expect/./HordeRole "${hordedirectory}" 2>&1 | logmanager
 			pear install -a -B horde/webmail 2>&1 | logmanager
 			mysql -u root --password=${mysql_pass} --batch --silent -e "CREATE DATABASE ${hordedatabase}; GRANT ALL ON ${hordedatabase}.* TO ${hordeuser}@localhost IDENTIFIED BY '${hordepassword}'; FLUSH PRIVILEGES;";  2>&1 | logmanager
-			expect/./HordeWebmail "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordedirectory}" "${hordeadmin}" "${hordemysql}"  2>&1 | logmanager
+			$currentDIR/expect/./HordeWebmail "${hordeuser}" "${hordepassword}" "${hordedatabase}" "${hordedirectory}" "${hordeadmin}" "${hordemysql}"  2>&1 | logmanager
 			mkdir "${hordedirectory}/phptmp/" 2>&1 | logmanager
 			chown -R www-data:www-data "${hordedirectory}" 2>&1 | logmanager
 			pear install MDB2_Driver_mysql 2>&1 | logmanager
